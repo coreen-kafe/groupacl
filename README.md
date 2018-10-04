@@ -10,7 +10,7 @@ Group-based Access Control
 
 $config = array(
     'roles' => array(
-        'https://myentityID' => array(
+        'https://my_SP_entityID' => array(
             'allow' => array(
                 'attributeFormat' => 'friendlyName',
                 'attributes' => array(
@@ -48,4 +48,7 @@ $config = array(
 * referUrl: grouper나 comanage의 group 권한 요청 URL
 
 
+적용 방법
+---------
+* allow: 해당 서비스제공자는 반드시 정의된 속성명과 속성값을 가지고 있어야 접근할 수 있다.
 

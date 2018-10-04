@@ -9,20 +9,33 @@
 
 	$id = $_REQUEST['StateId'];
 	$state = SimpleSAML_Auth_State::loadState($id, 'userAcl');	
+
+        $idp_entityId = $state['saml:sp:IdP'];
+        $sp_entityId = $state['SPMetadata']['entityid'];
 	$sp_url = $state['useracl:spurl'];
+	
+        $metadata = SimpleSAML_Metadata_MetaDataStorageHandler::getMetadataHandler();
+        $idp_metadata = $metadata->getMetaData($idp_entityId, 'saml20-idp-remote');
+        $idp_sso_service = $idp_metadata['SingleSignOnService'][0]['Location'];
+
+
 	$ref_url = $state['useracl:referurl'];
 	$tmp = explode(':', $state['useracl:error']);
 	$errMsg = $tmp[0];
 	$errAttr = isset($tmp[1]) ? $tmp[1] : '';
 	$msg = '';
+
+        $idp_initiated_sso = $idp_sso_service."?spentityid=".$sp_entityId."&RelayState=".$ref_url;
+
 	switch ($errMsg) {
 		case 'blockIp':
 			$msg = '접근 차단된 IP('.$_SERVER['REMOTE_ADDR'].')입니다.';
 		break;
 		case 'notAllowGroup':
-			$msg = '<p>해당 서비스제공자('. $sp_url . ')는 그룹정보를 필요로 합니다. </p>
-				<a href="'. $ref_url . '" target="_blank"> KAFE 그룹관리 시스템</a>을 통해 그룹 권한을 획득할 수 있습니다. <br />
-				그룹 권한의 획득을 위해 시스템(그룹) 관리자의 승인이 필요합니다.';
+			$msg = '<p>해당 서비스제공자('. $sp_url . ')는 그룹정보 등 추가적인 이용권한을 필요로 합니다. </p>
+				<a href="'.$ref_url . '" target="_blank"> KAFE GRAM(Group and Attribute Management system)</a>에 로그인해 권한을 요청하십시오. <br />
+				GRAM 시스템 관리자가 이용권한을 부여하면 요청하신 서비스에 로그인하실 수 있습니다. <br /><br />
+				'. $idp_initiated_sso;
 		break;
 		case 'notAllowUser':
 			$msg = '허용되지 않는 사용자 속성('.$errAttr.')입니다.';
